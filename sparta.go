@@ -52,6 +52,11 @@ const (
 	// widget perimeter will be enmarked. This value will be take
 	// efect in the next expose event of the widget.
 	Border = "border"
+
+	// Target widget (Widget), used in widgets that sends events to
+	// another widget (such a button). If the target is set to nil, then
+	// the widget will send the events to its parent.
+	Target = "target"
 )
 
 // Sparta generic units

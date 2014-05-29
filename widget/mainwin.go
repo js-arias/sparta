@@ -45,7 +45,8 @@ func NewMainWindow(name, title string) *MainWindow {
 	return w
 }
 
-// SetWindow sets the backend window of the window.
+// SetWindow is used by the backend to sets the backend window of the main
+// window.
 func (w *MainWindow) SetWindow(win sparta.Window) {
 	w.win = win
 }
@@ -191,4 +192,9 @@ func (w *MainWindow) Update() {
 // Focus set the focus on the main window.
 func (w *MainWindow) Focus() {
 	w.win.Focus()
+}
+
+// Close closes the main window.
+func (w *MainWindow) Close() {
+	w.win.Close()
 }

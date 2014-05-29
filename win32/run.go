@@ -122,7 +122,7 @@ func winEvent(id w32.HWND, event uint32, wParam, lParam uintptr) uintptr {
 			Loc:    image.Pt(getXLParam(lParam), getYLParam(lParam)),
 		}
 		w.OnEvent(ev)
-		w32.SetFocus(id)
+		w.Focus()
 	case w32.WM_LBUTTONUP, w32.WM_RBUTTONUP, w32.WM_MBUTTONUP:
 		ev := sparta.MouseEvent{
 			Button: -getButton(event),

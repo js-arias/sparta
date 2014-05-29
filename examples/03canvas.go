@@ -139,7 +139,7 @@ func main() {
 	tx.Capture(sparta.KeyEv, txKey)
 	tx.Update()
 
-	// We wnat to capture the mainwindow configure event so if the
+	// We want to capture the mainwindow configure event so if the
 	// mainWindow changes its size, we can update the size and position
 	// of the all other widgets.
 	m.Capture(sparta.Configure, mConf)

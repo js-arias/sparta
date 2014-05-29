@@ -74,7 +74,7 @@ func NewCanvas(parent sparta.Widget, name string, rect image.Rectangle) *Canvas 
 	return c
 }
 
-// SetWindow sets the backend window of the canvas.
+// SetWindow is used by the backend to set the backend window of the canvas.
 func (c *Canvas) SetWindow(win sparta.Window) {
 	c.win = win
 }
@@ -192,8 +192,11 @@ func (c *Canvas) OnEvent(e interface{}) {
 		}
 	case sparta.CommandEvent:
 		if c.commFn != nil {
-			c.commFn(c, e)
+			if c.commFn(c, e) {
+				return
+			}
 		}
+		c.parent.OnEvent(e)
 	case sparta.ExposeEvent:
 		if c.exposeFn != nil {
 			c.onExpose = true

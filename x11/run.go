@@ -95,7 +95,7 @@ func xEvent(e xgb.Event) {
 			Loc:    image.Pt(int(event.EventX), int(event.EventY)),
 		}
 		w.OnEvent(ev)
-		xwin.SetInputFocus(xgb.InputFocusNone, event.Event, xgb.TimeCurrentTime)
+		w.Focus()
 	case xgb.ButtonReleaseEvent:
 		if (event.Detail == 4) || (event.Detail == 5) {
 			break

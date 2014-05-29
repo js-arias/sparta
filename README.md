@@ -47,7 +47,7 @@ usage of the library.
 Authorship and license
 ----------------------
 
-Copyright (c) 2013, J. Salvador Arias <jsalarias@gmail.com>
+Copyright (c) 2014, J. Salvador Arias <jsalarias@gmail.com>
 All rights reserved.
 Distributed under BSD2 license that can be found in the LICENSE file.
 
