@@ -48,6 +48,7 @@ type List struct {
 	commFn   func(sparta.Widget, interface{}) bool
 	configFn func(sparta.Widget, interface{}) bool
 	exposeFn func(sparta.Widget, interface{}) bool
+	keyFn    func(sparta.Widget, interface{}) bool
 	mouseFn  func(sparta.Widget, interface{}) bool
 }
 
@@ -183,6 +184,7 @@ func (l *List) Capture(e sparta.EventType, fn func(sparta.Widget, interface{}) b
 	case sparta.Expose:
 		l.exposeFn = fn
 	case sparta.KeyEv:
+		l.keyFn = fn
 		l.scroll.Capture(e, fn)
 	case sparta.Mouse:
 		l.mouseFn = fn
@@ -243,9 +245,30 @@ func (l *List) OnEvent(e interface{}) {
 		rect := image.Rect(0, 0, l.geometry.Dx()-1, l.geometry.Dy()-1)
 		l.win.Rectangle(rect, false)
 	case sparta.KeyEvent:
-		// Only receive this keys if they are returned by the scroll,
-		// as the input focus is set on the scroll.
-		l.parent.OnEvent(e)
+		if s.keyFn != nil {
+			if s.keyFn(s, e) {
+				return
+			}
+		}
+		pos := l.scroll.Property(ScrollPos).(int)
+		page := l.scroll.Property(ScrollPage).(int)
+		ev := e.(sparta.KeyEvent)
+		switch ev.Key {
+		case sparta.KeyDown:
+			l.scroll.SetProperty(ScrollPos, pos+1)
+		case sparta.KeyUp:
+			l.scroll.SetProperty(ScrollPos, pos-1)
+		case sparta.KeyPageUp:
+			l.scroll.SetProperty(ScrollPos, pos-page)
+		case sparta.KeyPageDown:
+			l.scroll.SetProperty(ScrollPos, pos+page)
+		case sparta.KeyHome:
+			l.scroll.SetProperty(ScrollPos, 0)
+		case sparta.KeyEnd:
+			s.SetProperty(ScrollPos, l.list.Len())
+		default:
+			l.parent.OnEvent(e)
+		}
 	case sparta.MouseEvent:
 		if l.mouseFn != nil {
 			if l.mouseFn(l, e) {
@@ -276,5 +299,5 @@ func (l *List) Update() {
 
 // Focus set the focus on the list.
 func (l *List) Focus() {
-	l.scroll.Focus()
+	l.win.Focus()
 }
