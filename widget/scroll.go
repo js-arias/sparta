@@ -199,7 +199,7 @@ func (s *Scroll) SetProperty(p sparta.Property, v interface{}) {
 		if s.size == 0 {
 			s.page = 0
 			s.pos = 0
-		} else if s.pos > (s.size - s.page) {
+		} else if (s.page < s.size) && (s.pos > (s.size - s.page)) {
 			s.pos = s.size - s.page
 			sparta.SendEvent(s.target, sparta.CommandEvent{Source: s, Value: s.pos})
 		}

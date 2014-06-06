@@ -11,11 +11,27 @@ import (
 	"github.com/js-arias/sparta"
 )
 
-// List is a widget that shows a list of strings, and one of the elements
-// can be selected with the mouse. When a element of the list is selected, it
-// send an event to its target indicating the index of the selected element,
-//  it will be a positive number if the selection is made with the left button
-// or negative if it was with the right button.
+// ListData is a list used by a list control.
+type ListData interface {
+	// Len returns the length of the list.
+	Len() int
+
+	// Item returns the name of the i-th element of the list.
+	Item(int) string
+
+	// IsSel returns true if the i-th element is selected.
+	IsSel(int) bool
+}
+
+// List is a widget that shows a list of strings, and one or more elements
+// can be selected with the mouse.
+//
+// When a element of the list is selected, it send a comand event to its target
+// widget indicating the index of the selected element. It will be a positive
+// number if the selection is made with the left button or negative (starting
+// at -1), if it was with the right button.
+//
+// It is up to client code to manage multiple or single selection.
 type List struct {
 	name       string
 	win        sparta.Window
@@ -24,8 +40,7 @@ type List struct {
 	fore, back color.RGBA
 	data       interface{}
 
-	sel    int
-	list   []string
+	list   ListData
 	target sparta.Widget
 	scroll *Scroll
 
@@ -40,9 +55,6 @@ type List struct {
 const (
 	// sets the string list
 	ListList sparta.Property = "list"
-
-	// sets the selected element.
-	ListSelect = "select"
 )
 
 // NewList creates a new list.
@@ -54,7 +66,6 @@ func NewList(parent sparta.Widget, name string, rect image.Rectangle) *List {
 		back:     backColor,
 		fore:     foreColor,
 		target:   parent,
-		sel:      0,
 	}
 	sparta.NewWindow(l)
 	l.scroll = NewScroll(l, "list"+name+"Scroll", 0, 0, Vertical, image.Rect(rect.Dx()-10, 0, rect.Dx(), rect.Dy()))
@@ -97,8 +108,6 @@ func (l *List) Property(p sparta.Property) interface{} {
 		return l.target
 	case ListList:
 		return l.list
-	case ListSelect:
-		return l.sel
 	}
 	return nil
 }
@@ -148,28 +157,16 @@ func (l *List) SetProperty(p sparta.Property, v interface{}) {
 		}
 		l.target = val
 	case ListList:
-		val := v.([]string)
-		l.list = val
-		l.sel = 0
-		l.scroll.SetProperty(ScrollSize, 0)
-		l.scroll.SetProperty(ScrollSize, len(val))
+		if v == nil {
+			l.list = nil
+			l.scroll.SetProperty(ScrollSize, 0)
+		} else {
+			val := v.(ListData)
+			l.list = val
+			l.scroll.SetProperty(ScrollSize, 0)
+			l.scroll.SetProperty(ScrollSize, val.Len())
+		}
 		l.scroll.SetProperty(ScrollPage, l.geometry.Dy()/sparta.HeightUnit)
-		l.Update()
-	case ListSelect:
-		val := v.(int)
-		sel := val
-		if sel < 0 {
-			sel = -val
-		}
-		if sel >= len(l.list) {
-			break
-		}
-		l.sel = sel
-		pos := l.scroll.Property(ScrollPos).(int)
-		if (pos > l.sel) || (l.sel > (pos + l.geometry.Dy()/sparta.HeightUnit)) {
-			l.scroll.SetProperty(ScrollPos, l.sel)
-		}
-		sparta.SendEvent(l.target, sparta.CommandEvent{Source: l, Value: val})
 		l.Update()
 	}
 }
@@ -225,21 +222,22 @@ func (l *List) OnEvent(e interface{}) {
 			l.exposeFn(l, e)
 		}
 		l.win.SetColor(sparta.Foreground, foreColor)
-		if len(l.list) > 0 {
+		if (l.list != nil) && (l.list.Len() > 0) {
 			pos := l.scroll.Property(ScrollPos).(int)
 			if pos < 0 {
 				pos = 0
 			}
 			page := l.scroll.Property(ScrollPage).(int)
-			for i, s := range l.list[pos:] {
-				l.win.Text(image.Pt(2+sparta.WidthUnit, (i*sparta.HeightUnit)+2), s)
-				if i > page {
+			for i := 0; i <= page; i++ {
+				j := i + pos
+				if j >= l.list.Len() {
 					break
 				}
-			}
-			if (l.sel >= pos) && ((l.sel - pos) < page) {
-				y := ((l.sel - pos) * sparta.HeightUnit) + 2
-				l.win.Text(image.Pt(2, y), ">")
+				if l.list.IsSel(j) {
+					y := (i * sparta.HeightUnit) + 2
+					l.win.Text(image.Pt(2, y), ">")
+				}
+				l.win.Text(image.Pt(2+sparta.WidthUnit, (i*sparta.HeightUnit)+2), l.list.Item(j))
 			}
 		}
 		rect := image.Rect(0, 0, l.geometry.Dx()-1, l.geometry.Dy()-1)
@@ -263,10 +261,10 @@ func (l *List) OnEvent(e interface{}) {
 			l.scroll.SetProperty(ScrollPos, pos-1)
 		case sparta.MouseLeft:
 			p := ((ev.Loc.Y - 2) / sparta.HeightUnit) + pos
-			l.SetProperty(ListSelect, p)
+			sparta.SendEvent(l.target, sparta.CommandEvent{Source: l, Value: p})
 		case sparta.MouseRight:
 			p := ((ev.Loc.Y - 2) / sparta.HeightUnit) + pos
-			l.SetProperty(ListSelect, -p)
+			sparta.SendEvent(l.target, sparta.CommandEvent{Source: l, Value: -(p + 1)})
 		}
 	}
 }

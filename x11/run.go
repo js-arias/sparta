@@ -118,7 +118,7 @@ func xEvent(e xgb.Event) {
 		switch event.Type {
 		case atomMsg:
 			src := xgb.Id(event.Data.Data32[0])
-			val := int(event.Data.Data32[1])
+			val := int(int32(event.Data.Data32[1]))
 			sw, ok := widgetTable[src]
 			if !ok {
 				sw = nil

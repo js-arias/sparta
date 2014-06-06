@@ -184,7 +184,7 @@ func winEvent(id w32.HWND, event uint32, wParam, lParam uintptr) uintptr {
 		}
 		ev := sparta.CommandEvent{
 			Source: src,
-			Value:  int(lParam),
+			Value:  int(int32(lParam)),
 		}
 		w.OnEvent(ev)
 	default:

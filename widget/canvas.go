@@ -14,7 +14,7 @@ import (
 // Arc is an arc for the canvas widget.
 type Arc struct {
 	Rect           image.Rectangle
-	Angle1, Angle2 float64
+	Angle1, Angle2 float64 // in radians
 	Fill           bool
 }
 
