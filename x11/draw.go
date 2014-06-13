@@ -31,6 +31,9 @@ func (win *window) Text(pt image.Point, text string) {
 	if len(text) == 0 {
 		return
 	}
+	if len(text) > 128 {
+		text = text[:128]
+	}
 	tx := utf16.Encode([]rune(text))
 	tx16 := make([]xgb.Char2b, len(tx))
 	for i, v := range tx {
